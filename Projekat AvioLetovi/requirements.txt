@@ -8,3 +8,4 @@ eventlet
 psycopg2-binary
 redis
 pyodbc
+flask-migrate
