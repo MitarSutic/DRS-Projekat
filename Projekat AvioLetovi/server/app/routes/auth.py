@@ -57,9 +57,8 @@ def login():
     user.reset_attempts()
     db.session.commit()
 
-    token = create_access_token(identity={
-        "id": user.id,
-        "role": user.uloga
-    })
-
+    token = create_access_token(
+    identity=str(user.id),
+    additional_claims={"role": user.uloga}
+    )
     return jsonify(access_token=token), 200
