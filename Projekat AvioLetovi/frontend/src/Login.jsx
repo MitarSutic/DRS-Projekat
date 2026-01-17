@@ -22,9 +22,19 @@ function Login() {
 
       const data = await response.json();
       if (response.ok) {
-        alert("Login uspešan! Token: " + data.access_token);
+        alert("Login uspešan!");
         localStorage.setItem("token", data.access_token);
-      } else {
+          // Provera role
+        const decoded = parseJwt(data.access_token); // funkcija koja dekoduje JWT
+        if (decoded.role === "ADMINISTRATOR") {
+          window.location.href = "/admin"; // preusmeri na admin stranicu
+        } 
+        else {
+          window.location.href = "/profile"; // ili običan korisnik
+        }
+      }
+        
+       else {
         alert(data.msg);
       }
     } catch (error) {
@@ -52,6 +62,13 @@ function Login() {
       </form>
     </div>
   );
+}
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
 }
 
 export default Login;

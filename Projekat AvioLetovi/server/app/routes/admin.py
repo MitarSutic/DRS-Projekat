@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models.user import User
-from app.extensions import db
+from app.extensions import db, mail
+from flask_mail import Message
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -46,6 +47,7 @@ def change_role(user_id):
         return jsonify(msg="Korisnik ne postoji"), 404
 
     user.uloga = new_role
+    send_role_change_email(user)
     db.session.commit()
     return jsonify(msg=f"Uloga korisnika {user.ime} {user.prezime} promenjena u {new_role}"), 200
 
@@ -63,3 +65,12 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return jsonify(msg=f"Korisnik {user.email} obrisan"), 200
+
+# Mail
+def send_role_change_email(user: User):
+    msg = Message(
+        subject="Promena uloge",
+        recipients=["lukaglishic@gmail.com"],
+        body=f"Zdravo {user.ime},\n\nVasa uloga u sistemu je upravo promenjena na ulogu: {user.uloga}.\n\nPozdrav,LimanAir"
+    )
+    mail.send(msg)
