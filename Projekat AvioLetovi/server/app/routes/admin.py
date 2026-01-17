@@ -8,7 +8,7 @@ admin_bp = Blueprint("admin", __name__)
 
 # Helper: proverava da li je korisnik admin
 def is_admin():
-    claims = get_jwt()  # ovo vraća dict sa svim claim-ovima iz JWT
+    claims = get_jwt()
     return claims.get("role") == "ADMINISTRATOR"
 
 #Lista svih korisnika
@@ -71,6 +71,6 @@ def send_role_change_email(user: User):
     msg = Message(
         subject="Promena uloge",
         recipients=["lukaglishic@gmail.com"],
-        body=f"Zdravo {user.ime},\n\nVasa uloga u sistemu je upravo promenjena na ulogu: {user.uloga}.\n\nPozdrav,LimanAir"
+        body=f"Zdravo {user.ime},\n\nVasa uloga u sistemu je upravo promenjena na ulogu: {user.uloga}.\n\nPozdrav,\nLiman Air."
     )
     mail.send(msg)
