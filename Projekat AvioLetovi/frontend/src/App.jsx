@@ -2,7 +2,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import Login from "./Login";
 import Register from "./Register";
 import Admin from "./pages/Admin";
-import Flights from "./pages/Flights";
+//import Flights from "./pages/Flights";
 import RequireAuth from "./auth/RequireAuth";
 import { useAuth } from "./auth/AuthContext";
 import { ROLES } from "./utils/roles";
@@ -46,14 +46,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <Flights />
-            </RequireAuth>
-          }
-        />
+
 
         <Route
           path="/admin"
