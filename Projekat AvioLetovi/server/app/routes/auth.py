@@ -3,6 +3,11 @@ from flask_jwt_extended import create_access_token
 from app.models.user import User
 from app.extensions import db
 
+from app.login_attempt_service import(
+    is_blocked,
+    register_failed_attempt,
+    reset_attempts
+)
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/register", methods=["POST"])
