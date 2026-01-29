@@ -6,7 +6,7 @@ class Flight(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, name="Id")
     Naziv = db.Column(db.String(100), nullable=False, name="Naziv")
-    AirlineId = db.Column(db.String(50), nullable=True,name="AirlineId")
+    AirlineId = db.Column(db.Integer, nullable=True,name="AirlineId")
     DuzinaLeta= db.Column(db.Integer, nullable=True,name="DuzinaLeta")
     TrajanjeLeta = db.Column(db.Integer, nullable=True, name="TrajanjeLeta")
     VremePolaska = db.Column(db.DateTime,default=datetime.now, nullable=True, name="VremePolaska")
