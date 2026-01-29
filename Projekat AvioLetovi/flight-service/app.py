@@ -1,0 +1,9 @@
+from app import create_app
+from flask_socketio import SocketIO
+from app.routes.flights import init_socketio
+
+app = create_app()
+socketio = SocketIO(app, cors_allowed_origins="*")
+init_socketio(socketio)
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=5001, debug=True)
