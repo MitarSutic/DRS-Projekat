@@ -6,5 +6,5 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_SECRET_KEY = "super-secret-key"
+    JWT_SECRET_KEY = "flight-service-key"
     JWT_ACCESS_TOKEN_EXPIRES = 3600

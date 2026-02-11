@@ -7,7 +7,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 👇 Custom validacija
+    //  Custom validacija
     if (!email || !password) {
       alert("Email i lozinka su obavezni!");
       return;

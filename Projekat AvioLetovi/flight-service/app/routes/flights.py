@@ -1,18 +1,37 @@
 from flask import Blueprint, request, jsonify
 from app.models.flight import Flight
 from app.extensions import db
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
+from functools import wraps
+from flask_jwt_extended import jwt_required, get_jwt
 
 flights_bp = Blueprint("flights_bp", __name__)
 
 # Ovo je samo referenca, SocketIO ćemo injektovati kasnije
 socketio = None
 
-def init_socketio(sio):
+def init_socketio(sio: SocketIO):
     global socketio
     socketio = sio
 
-# GET svi letovi
+# ======== Role dekorator ========
+from flask_jwt_extended import get_jwt_identity
+
+def role_required(role):
+    def decorator(fn):
+        @wraps(fn)
+        @jwt_required()
+        def wrapper(*args, **kwargs):
+            claims = get_jwt()
+            if claims.get("role") != role:
+                return {"msg": "Forbidden"}, 403
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+
+# ======== GET svi letovi ========
 @flights_bp.route("/", methods=["GET"])
 def get_flights():
     flights = Flight.query.all()
@@ -29,8 +48,9 @@ def get_flights():
         })
     return jsonify(result)
 
-# Kreiranje leta (menadžer)
+# ======== Kreiranje leta (samo manager) ========
 @flights_bp.route("/", methods=["POST"])
+@role_required("MENADZER")
 def create_flight():
     data = request.json
     flight = Flight(
@@ -42,12 +62,11 @@ def create_flight():
         AerodromDolaska=data["aerodromDolaska"],
         KreiraoUserId=data["kreiraoUserId"],
         CenaKarte=data["cenaKarte"],
-        Status="pending"  # odmah pending
+        Status="pending"
     )
     db.session.add(flight)
     db.session.commit()
 
-    # emitovati event ka adminu
     if socketio:
         socketio.emit("new_flight_pending", {
             "id": flight.id,
@@ -57,8 +76,9 @@ def create_flight():
 
     return jsonify({"message": "Flight created", "flightId": flight.id})
 
-# Admin odobrava let
+# ======== Odobravanje leta (samo admin) ========
 @flights_bp.route("/<int:flight_id>/approve", methods=["POST"])
+@role_required("ADMINISTRATOR")
 def approve_flight(flight_id):
     flight = Flight.query.get(flight_id)
     if not flight:
@@ -67,7 +87,6 @@ def approve_flight(flight_id):
     flight.Status = "approved"
     db.session.commit()
 
-    # Emit ka korisnicima ili frontu ako želiš
     if socketio:
         socketio.emit("flight_approved", {
             "id": flight.id,
@@ -77,8 +96,9 @@ def approve_flight(flight_id):
 
     return jsonify({"message": "Flight approved"})
 
-# Admin odbija let
+# ======== Odbijanje leta (samo admin) ========
 @flights_bp.route("/<int:flight_id>/reject", methods=["POST"])
+@role_required("ADMINISTRATOR")
 def reject_flight(flight_id):
     flight = Flight.query.get(flight_id)
     if not flight:
@@ -89,7 +109,6 @@ def reject_flight(flight_id):
     flight.Status = "rejected"
     db.session.commit()
 
-    # Emit ka menadžeru
     if socketio:
         socketio.emit("flight_rejected", {
             "id": flight.id,
@@ -99,3 +118,21 @@ def reject_flight(flight_id):
         }, namespace="/manager")
 
     return jsonify({"message": "Flight rejected"})
+
+# ======== Brisanje leta (samo admin) ========
+@flights_bp.route("/<int:flight_id>/delete", methods=["DELETE"])
+@role_required("ADMINISTRATOR")
+def delete_flight(flight_id):
+    flight = Flight.query.get(flight_id)
+    if not flight:
+        return jsonify({"message": "Flight not found"}), 404
+
+    # Fizičko brisanje
+    db.session.delete(flight)
+    db.session.commit()
+
+    # Alternativa: soft delete
+    # flight.Status = "deleted"
+    # db.session.commit()
+
+    return jsonify({"message": "Flight obrisan"})
